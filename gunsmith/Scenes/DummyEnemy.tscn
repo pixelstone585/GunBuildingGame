@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://cm6si547mgkle"]
+
+[ext_resource type="Script" uid="uid://duchoy54hhjky" path="res://Scripts/DummyEnemy.cs" id="1_qaoli"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_o631b"]
+size = Vector3(1, 1.9831543, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hmo53"]
+albedo_color = Color(1, 0, 0, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_o631b"]
+material = SubResource("StandardMaterial3D_hmo53")
+
+[node name="DummyEnemy" type="RigidBody3D" unique_id=517698350 groups=["damageable"]]
+script = ExtResource("1_qaoli")
+
+[node name="DummyCollider" type="CollisionShape3D" parent="." unique_id=1743202439]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.0020751953, 0)
+shape = SubResource("BoxShape3D_o631b")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1088188160]
+mesh = SubResource("CapsuleMesh_o631b")
+
+[node name="HealthBar" type="Label3D" parent="." unique_id=1243162919]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1761925, 0)
+billboard = 2

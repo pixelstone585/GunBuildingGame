@@ -1,0 +1,49 @@
+[gd_scene format=3 uid="uid://boimvd0li3hgy"]
+
+[ext_resource type="PackedScene" uid="uid://dyb67wd3n5p8x" path="res://Scenes/player_bean.tscn" id="1_pq8q7"]
+[ext_resource type="PackedScene" uid="uid://i5i4m0soaek7" path="res://Scenes/projectile.tscn" id="2_pyidc"]
+[ext_resource type="PackedScene" uid="uid://cm6si547mgkle" path="res://Scenes/DummyEnemy.tscn" id="3_vnucn"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_vho56"]
+size = Vector3(60, 0.5, 60)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pq8q7"]
+size = Vector3(60, 0.5, 60)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pq8q7"]
+albedo_color = Color(0.7298246, 0.15405387, 0.24491623, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pyidc"]
+material = SubResource("StandardMaterial3D_pq8q7")
+
+[node name="Root" type="Node" unique_id=1916946297]
+
+[node name="Floor" type="StaticBody3D" parent="." unique_id=419859571]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor" unique_id=1878282328]
+shape = SubResource("BoxShape3D_vho56")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=442868966]
+mesh = SubResource("BoxMesh_pq8q7")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1683389506]
+transform = Transform3D(1, 0, 0, 0, 0.7071068, 0.7071068, 0, -0.7071068, 0.7071068, 0, 7, 8)
+shadow_enabled = true
+
+[node name="Player" parent="." unique_id=1988208691 instance=ExtResource("1_pq8q7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.64993286, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1214621002]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)
+mesh = SubResource("BoxMesh_pyidc")
+
+[node name="Projectile" parent="." unique_id=1500001230 instance=ExtResource("2_pyidc")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 1, -2)
+Speed = 35.0
+
+[node name="DummyEnemy" parent="." unique_id=517698350 instance=ExtResource("3_vnucn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4892213, 0.9249555, -2.0086722)
+
+[node name="DummyEnemy2" parent="." unique_id=679312118 instance=ExtResource("3_vnucn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.486222, 0.9249555, -2.0086722)

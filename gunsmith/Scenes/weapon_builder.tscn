@@ -1,0 +1,61 @@
+[gd_scene format=3 uid="uid://uyib21jj8joj"]
+
+[ext_resource type="Script" uid="uid://bly5a8i4olsuu" path="res://Scripts/WeaponBuilder.cs" id="1_3pccp"]
+[ext_resource type="Script" uid="uid://d2d0w1m68bpcj" path="res://Scripts/EditorCamera.cs" id="1_bgvhc"]
+[ext_resource type="Script" uid="uid://ltvlq4hgkrh3" path="res://Scripts/CameraRayCaster.cs" id="2_kndrm"]
+[ext_resource type="PackedScene" uid="uid://dam8h07div0jy" path="res://Scenes/GunParts/test_part.tscn" id="4_vo0l8"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wnxjr"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_vo0l8"]
+size = Vector3(1.1, 1.1, 1.1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vo0l8"]
+albedo_color = Color(1, 0.22352941, 0.1764706, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wnxjr"]
+material = SubResource("StandardMaterial3D_vo0l8")
+size = Vector3(0.5, 0.5, 0.5)
+
+[node name="WeaponBuilder" type="Node3D" unique_id=279789974]
+script = ExtResource("1_3pccp")
+
+[node name="CameraPivot" type="Node3D" parent="." unique_id=1189704651]
+script = ExtResource("1_bgvhc")
+CamMaxIn = 2.0
+CamMaxOut = 20.0
+
+[node name="CameraPivotY" type="Node3D" parent="CameraPivot" unique_id=975236022]
+
+[node name="Camera" type="Camera3D" parent="CameraPivot/CameraPivotY" unique_id=1768199387]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 5)
+script = ExtResource("2_kndrm")
+
+[node name="RayCast" type="RayCast3D" parent="CameraPivot/CameraPivotY/Camera" unique_id=990317527]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=896041551]
+transform = Transform3D(1, 0, 0, 0, 0.70710677, 0.70710677, 0, -0.70710677, 0.70710677, 0, 7.157301, 5.9537377)
+
+[node name="PartContainer" type="Node3D" parent="." unique_id=1083235578]
+
+[node name="TestPart" parent="PartContainer" unique_id=514844697 instance=ExtResource("4_vo0l8")]
+
+[node name="PartPreviewOrigin" type="Node3D" parent="." unique_id=1322722716]
+
+[node name="PartPreviewPivot" type="Node3D" parent="PartPreviewOrigin" unique_id=1055015832]
+
+[node name="PartPreview" type="Node3D" parent="PartPreviewOrigin/PartPreviewPivot" unique_id=925103138]
+
+[node name="PlaceCollider" type="Area3D" parent="PartPreviewOrigin/PartPreviewPivot/PartPreview" unique_id=784272254]
+
+[node name="PlaceColliderShape" type="CollisionShape3D" parent="PartPreviewOrigin/PartPreviewPivot/PartPreview/PlaceCollider" unique_id=978281509]
+shape = SubResource("BoxShape3D_wnxjr")
+debug_color = Color(0.72156864, 0.21568628, 0.69803923, 0.41960785)
+
+[node name="DebugPivot" type="MeshInstance3D" parent="PartPreviewOrigin/PartPreviewPivot" unique_id=1539564804]
+visible = false
+mesh = SubResource("BoxMesh_vo0l8")
+
+[node name="DebugOrigin" type="MeshInstance3D" parent="PartPreviewOrigin" unique_id=2133562235]
+visible = false
+mesh = SubResource("BoxMesh_wnxjr")

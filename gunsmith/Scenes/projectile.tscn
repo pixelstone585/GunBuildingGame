@@ -1,0 +1,46 @@
+[gd_scene format=3 uid="uid://i5i4m0soaek7"]
+
+[ext_resource type="Script" uid="uid://dxm0y40ww4srf" path="res://Scripts/Projectile.cs" id="1_a85iw"]
+
+[sub_resource type="Gradient" id="Gradient_a85iw"]
+offsets = PackedFloat32Array(0, 0.39344263)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_qxf0c"]
+gradient = SubResource("Gradient_a85iw")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_qxf0c"]
+emission_shape_offset = Vector3(0, 0.2, 0)
+angle_min = 1.0728835e-05
+angle_max = 1.0728835e-05
+direction = Vector3(0, 0, 0)
+gravity = Vector3(0, 0, 0)
+color = Color(1, 0.4862745, 0.2, 1)
+color_ramp = SubResource("GradientTexture1D_qxf0c")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a85iw"]
+transparency = 1
+vertex_color_use_as_albedo = true
+
+[sub_resource type="TubeTrailMesh" id="TubeTrailMesh_sxmqc"]
+material = SubResource("StandardMaterial3D_a85iw")
+radius = 0.02
+section_length = 0.05
+cap_top = false
+cap_bottom = false
+
+[node name="Projectile" type="Node3D" unique_id=1500001230]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
+script = ExtResource("1_a85iw")
+
+[node name="ProjectileDisplay" type="Node3D" parent="." unique_id=302119733]
+
+[node name="ProjectileTrail" type="GPUParticles3D" parent="ProjectileDisplay" unique_id=261538078]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0)
+amount = 10
+lifetime = 0.15000000000000002
+trail_lifetime = 1.95
+process_material = SubResource("ParticleProcessMaterial_qxf0c")
+draw_pass_1 = SubResource("TubeTrailMesh_sxmqc")
+
+[node name="ProjectileRayCast" type="RayCast3D" parent="." unique_id=68943928]
