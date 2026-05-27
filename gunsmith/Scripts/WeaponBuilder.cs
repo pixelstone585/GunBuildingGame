@@ -1,4 +1,5 @@
 using Godot;
+using Godot.Collections;
 using System;
 using System.Drawing;
 using static Godot.Image;
@@ -9,7 +10,8 @@ public partial class WeaponBuilder : Node3D
     [Export]
     public float GridSize { get; set; } = 1f;
 
-    public PackedScene SelectedPart;
+    private PackedScene SelectedPart;
+    public int SelecedIndex;
     public Node3D PlacePreview;
     public Vector3 PlaceRotation=Vector3.Zero;
 
@@ -21,6 +23,9 @@ public partial class WeaponBuilder : Node3D
     private BoxShape3D PlaceColliderShape;
     private CameraRayCaster CamRayCaster;
     private Node3D PartContainer;
+
+    [Export]
+    public Array<PackedScene> AvailableParts { get; set; }
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -31,9 +36,11 @@ public partial class WeaponBuilder : Node3D
         PlacePreview = GetNode<Node3D>("PartPreviewOrigin/PartPreviewPivot/PartPreview");
         PlaceCollider = GetNode<Area3D>("PartPreviewOrigin/PartPreviewPivot/PartPreview/PlaceCollider");
         PlaceColliderShape = (BoxShape3D)GetNode<CollisionShape3D>("PartPreviewOrigin/PartPreviewPivot/PartPreview/PlaceCollider/PlaceColliderShape").Shape;
-        SelectedPart = GD.Load<PackedScene>("res://Scenes/GunParts/test_part.tscn");
-        ChangePreview(SelectedPart);
-        
+
+        SelectPart(AvailableParts[0]);
+        SelecedIndex = 0;
+
+
     }
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -45,23 +52,55 @@ public partial class WeaponBuilder : Node3D
     {
 
         (Vector3 Position,GunPart TargetPartBase, Vector3 Normal) = CamRayCaster.MouseRayCast();
-        Position += Normal* ((Normal.X==-1|| Normal.Y == -1|| Normal.Z == -1) ?TargetPartBase.size:Vector3.One);
-
-        
-        Position +=ApplyRotationOffset(Normal);
         Position = SnapToGrid(Position);
-        
+
+        //take care of all 6 cases separetly(combining thme coused problems with wierd edge cases).
+        if (Normal.X > 0.9) {
+            
+            Position.X = GetPreviewSizeOffset(Normal).X + 0.5f* Normal.X;
+        }
+        if (Normal.X < -0.9) {
+            Position.X = GetPreviewSizeOffset(Normal).X + (TargetPartBase.size.X - 0.5f) * Normal.X;
+        }
+        if (Normal.Y > 0.9) {
+            Position.Y = GetPreviewSizeOffset(Normal).Y + 0.5f * Normal.Y;
+        }
+        if (Normal.Y < -0.9)
+        {
+            Position.Y = GetPreviewSizeOffset(Normal).X + (TargetPartBase.size.Y - 0.5f) * Normal.Y;
+        }
+        if (Normal.Z > 0.9)
+        {
+            Position.Z = GetPreviewSizeOffset(Normal).Z + 0.5f * Normal.Z;
+            
+        }
+        if (Normal.Z < -0.9)
+        {
+            Position.Z = GetPreviewSizeOffset(Normal).Z + (TargetPartBase.size.Z - 0.5f) * Normal.Z;
+        }
+
+
+
+        //apply position and rotation
         PlacePreviewOrigin.Position = Position;
         PlacePreviewPivot.RotationDegrees = PlaceRotation;
+        //place part
         if (Input.IsActionJustPressed("fire_weapon")&& !PlaceCollider.HasOverlappingBodies())
         {
 
             PlacePart(Position, PlaceRotation);
         }
+        //switch part(TEMPORARY, replace with side menu)
+        if (Input.IsActionJustPressed("change_selected_part")) {
+            SelecedIndex++;
+            SelecedIndex = SelecedIndex % AvailableParts.Count;
+            SelectPart(AvailableParts[SelecedIndex]);
+        }
     }
 
     public float SnapToGrid(float Value) {
-        return ((int)(Value / GridSize)) * GridSize;// + ((Value % GridSize >= GridSize *(0.5))?GridSize : 0);
+        int intValue = (int)(Value);
+        return intValue + ((Value - intValue > 0.49) ? 1 : 0);
     }
     public Vector3 SnapToGrid(Vector3 Value) {
         return new Vector3(SnapToGrid(Value.X), SnapToGrid(Value.Y), SnapToGrid(Value.Z));
@@ -74,8 +113,17 @@ public partial class WeaponBuilder : Node3D
         Part.RotationDegrees = Rotation;
     }
 
+    public void SelectPart(PackedScene PartScene)
+    {
+        SelectedPart = PartScene;
+        ChangePreview(PartScene);
+    }
     public void ChangePreview(PackedScene PartScene)
     {
+        //remove previous preview
+        if (PlacePreview.GetChildCount() > 1) {
+            PlacePreview.GetChild(1).QueueFree();
+        }
         PartPreview = (Node3D)PartScene.Instantiate();//create preview
         PlacePreview.AddChild(PartPreview);
         PartPreviewBase = PartPreview.GetNode<GunPart>("GunPartBase");//get partBase node
@@ -111,23 +159,29 @@ public partial class WeaponBuilder : Node3D
             PlaceRotation += new Vector3(0, 0, -90);
         }
     }
-
-    public Vector3 ApplyRotationOffset(Vector3 Normal) {
-        Vector3 Offset = Vector3.Zero;
-        if (Normal.IsEqualApprox(PlacePreviewPivot.Basis.X))
-        {
-            Offset += PartPreviewBase.size.X* Normal.Abs()- Normal.Abs();
+    //calculate needed offset for the current part's size and rotation. 
+    public Vector3 GetPreviewSizeOffset(Vector3 Normal) {
+        GD.Print(Normal + "," + PartPreview.GlobalBasis.X.Normalized());
+        if (EqualApprox(PartPreview.GlobalBasis.X.Normalized(),Normal)) {
+            GD.Print("Z");
+            
+            return Normal*(PartPreviewBase.size.X - 0.5f);
         }
-        else if (Normal.IsEqualApprox(PlacePreviewPivot.Basis.Y))
+        if (EqualApprox(PartPreview.GlobalBasis.Y.Normalized(), Normal))
         {
-            Offset += Normal*(PartPreviewBase.size.Y-1);
-        }
-        else if (Normal.IsEqualApprox(PlacePreviewPivot.Basis.Z))
-        {
-            Offset += PartPreviewBase.size.Z * Normal.Abs()- Normal.Abs();
-
+            return Normal * (PartPreviewBase.size.Y - 0.5f);
         }
         
-        return Offset;
+        if (EqualApprox(PartPreview.GlobalBasis.Z.Normalized(), Normal))
+        {
+
+            return Normal * (PartPreviewBase.size.Z - 0.5f);
+        }
+        return new Vector3(0.5f, 0.5f, 0.5f) * Normal;
+    }
+
+    //effectively Vector3.IsEqualApprox but with a custome torarence. encounterd problems with rounding errors.
+    public bool EqualApprox(Vector3 Vec1, Vector3 Vec2,float tolerance=0.001f) {
+        return Vec1.DistanceSquaredTo(Vec2) < tolerance * tolerance;
     }
 }

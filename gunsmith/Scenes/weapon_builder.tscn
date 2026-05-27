@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://bly5a8i4olsuu" path="res://Scripts/WeaponBuilder.cs" id="1_3pccp"]
 [ext_resource type="Script" uid="uid://d2d0w1m68bpcj" path="res://Scripts/EditorCamera.cs" id="1_bgvhc"]
 [ext_resource type="Script" uid="uid://ltvlq4hgkrh3" path="res://Scripts/CameraRayCaster.cs" id="2_kndrm"]
+[ext_resource type="PackedScene" uid="uid://dnub3bga6udmm" path="res://Scenes/GunParts/light_chamber.tscn" id="3_wnxjr"]
 [ext_resource type="PackedScene" uid="uid://dam8h07div0jy" path="res://Scenes/GunParts/test_part.tscn" id="4_vo0l8"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_wnxjr"]
@@ -19,6 +20,7 @@ size = Vector3(0.5, 0.5, 0.5)
 
 [node name="WeaponBuilder" type="Node3D" unique_id=279789974]
 script = ExtResource("1_3pccp")
+AvailableParts = Array[PackedScene]([ExtResource("4_vo0l8"), ExtResource("3_wnxjr")])
 
 [node name="CameraPivot" type="Node3D" parent="." unique_id=1189704651]
 script = ExtResource("1_bgvhc")

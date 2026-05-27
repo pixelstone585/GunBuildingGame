@@ -1,10 +1,16 @@
 [gd_scene format=3 uid="uid://dam8h07div0jy"]
 
-[ext_resource type="PackedScene" uid="uid://bnx5o7fmi4dnn" path="res://Scenes/GunParts/GunPartBase.tscn" id="1_5i75j"]
+[ext_resource type="PackedScene" uid="uid://bnx5o7fmi4dnn" path="res://Scenes/GunParts/GunPartComponanent/GunPartBase.tscn" id="1_5i75j"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_5i75j"]
+size = Vector3(0.51, 0.52, 1)
 
 [node name="TestPart" type="Node3D" unique_id=514844697]
 transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0)
 
 [node name="GunPartBase" parent="." unique_id=198821929 instance=ExtResource("1_5i75j")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.25, -0.25, 0)
 size = Vector3(2, 2, 1)
+
+[node name="tmp" type="MeshInstance3D" parent="." unique_id=1255157171]
+mesh = SubResource("BoxMesh_5i75j")

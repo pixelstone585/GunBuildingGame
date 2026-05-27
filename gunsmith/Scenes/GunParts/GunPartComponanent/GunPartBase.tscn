@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://bnx5o7fmi4dnn"]
+
+[ext_resource type="Script" uid="uid://1fxnq16mxd3m" path="res://Scripts/GunPart.cs" id="1_ix77b"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_et3ei"]
+albedo_color = Color(0.7650471, 0.6071059, 0, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5x26q"]
+material = SubResource("StandardMaterial3D_et3ei")
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ix77b"]
+
+[node name="GunPartBase" type="MeshInstance3D" unique_id=198821929]
+mesh = SubResource("BoxMesh_5x26q")
+script = ExtResource("1_ix77b")
+
+[node name="PartPhysicsBody" type="StaticBody3D" parent="." unique_id=1288681827]
+
+[node name="PartCollider" type="CollisionShape3D" parent="PartPhysicsBody" unique_id=1242737627]
+shape = SubResource("BoxShape3D_ix77b")

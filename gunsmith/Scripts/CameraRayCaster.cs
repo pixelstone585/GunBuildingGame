@@ -33,7 +33,8 @@ public partial class CameraRayCaster : Camera3D
 		RayCast.ForceRaycastUpdate();
 		if (RayCast.IsColliding()) {
 			LastObject = ((GunPart)(((Node3D)RayCast.GetCollider()).GetParent()));//get position of the owner of the GunPartBase scene
-			LastPosition = ((Node3D)LastObject.Owner).Position;
+																				  //LastPosition = ((Node3D)LastObject.Owner).Position;
+			LastPosition = RayCast.GetCollisionPoint();
         }
 		//return (RayCast.GetCollisionPoint(),RayCast.GetCollisionNormal());
 		return (LastPosition, LastObject, RayCast.GetCollisionNormal());

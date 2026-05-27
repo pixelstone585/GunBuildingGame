@@ -1,49 +1,95 @@
 using Godot;
 using System;
-using System.Runtime.InteropServices;
+using Godot.Collections;
+using System.Linq;
 
 public partial class Connector : Area3D
 {
-	Node3D Part;
+	public FiringPipeLine PipeLine;
+	[Export]
+	public Array<Connector> PairedConnectors { get; set; }
+	[Export]
+	public ConnectionTypes Type { get; set; }
 	[Signal]
-	public delegate void ApplyModifiersEventHandler(FiringPipeLine Pipe);
-	Connector OutConnector;
-	bool IsTermination = false;
-	// Called when the node enters the scene tree for the first time.
-	public override void _Ready()
-	{
-	}
+	public delegate void PartUpdateEventHandler();
 
-	public void Init(Connector OutConnector, Node3D Part) {
-		this.OutConnector = OutConnector;
-		this.Part = Part;
-	}
+	public enum ConnectionTypes {LightAmmo,HeavyAmmo,ShotgunAmmo,Barrel,Mechanical};
+    // Called when the node enters the scene tree for the first time.
+    public override void _Ready()
+	{
+    }
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
 	}
-	public void PropagateInternal(FiringPipeLine Pipe) {
-		EmitSignal(SignalName.ApplyModifiers, Pipe);
-		if (IsTermination) {
-			return;
+
+	//TODO: try to find an algorithem that does nor require cataloging previously treveresd Conectors
+	public void PropagatePipeLine(FiringPipeLine Pipe, Array<Connector> TreveresdConnectors) { 
+        this.PipeLine = Pipe;
+		GD.Print(Pipe);
+        //Signal that a PipeLine has been assigned
+        EmitSignal(SignalName.PartUpdate);
+		//add this node to the treversed nodes
+		TreveresdConnectors.Add(this);
+		//propagte to paired connectors
+        foreach (Connector connector in PairedConnectors) {
+			//propagate to connector if it is empty and has not been treversed
+			if( !IsConnectorInGArray(connector, TreveresdConnectors))//&& 
+            {
+				connector.PropagatePipeLine(Pipe, TreveresdConnectors);
+			}
 		}
-		OutConnector.PropagateExternal(Pipe);
+        Connector ExternalConnector = GetConnected();
+		if (ExternalConnector !=null && !IsConnectorInGArray(ExternalConnector, TreveresdConnectors)) {
+			GD.Print("pass");
+			ExternalConnector.PropagatePipeLine(Pipe, TreveresdConnectors);
+        }
+
+        
 	}
-    public void PropagateExternal(FiringPipeLine Pipe)
-    {
-		Godot.Collections.Array<Area3D> Areas = GetOverlappingAreas();
-		Connector Next=null;
-		bool NextFound = false;
-		for (int i = 0; i < Areas.Count && !NextFound; i++) {
-			if (Areas[i] is Connector && Areas[i].GlobalTransform.IsEqualApprox(GlobalTransform)) {
-				Next = (Connector)Areas[i];
-				NextFound = true;
+	public void SetFiringPipeLine(FiringPipeLine Pipe) {
+		this.PipeLine = Pipe;
+        foreach (Connector connector in PairedConnectors)
+        {
+			//TODO: Figure out what to do when a Connector is Connected to 2 pipelines
+			connector.PipeLine = Pipe;
+        }
+    }
+	private bool IsConnectorInGArray(Connector Obj, Array<Connector> ObjArray) {
+        foreach (Connector item in ObjArray)
+        {
+			if (item==Obj) {
+				return true;
+			}
+        }
+		return false;
+    }
+
+	public Connector GetConnected() {
+		Array<Area3D> OverlappingAreas = GetOverlappingAreas();
+		//search for overlapping connectors
+		foreach (Area3D Area in OverlappingAreas) {
+			if (Area is Connector) {
+				Connector FoundConnector = (Connector)Area;
+				//return if a valid connector was found and isnt in pairedConnectors
+				if (!IsConnectorInGArray(FoundConnector,PairedConnectors)&& IsConnectorCompatible(FoundConnector))
+				{
+                    return FoundConnector;
+                }
             }
 		}
-		if (NextFound) {
-			Next.PropagateInternal(Pipe);
-		}
-		
-    }
+		return null;
+	}
+
+	public bool IsConnectorCompatible(Connector other) {
+		bool ret = false;
+
+		//check for full overlap
+		ret = ret && (other.GlobalPosition == GlobalPosition) && (other.Scale == Scale);
+		//check fo matching type
+		ret = ret && (other.Type == Type);
+		return ret;
+	}
+
 }
