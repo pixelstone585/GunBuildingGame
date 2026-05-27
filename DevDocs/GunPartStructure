@@ -1,0 +1,2 @@
+1) GunPartBase Must be a child of the root node.
+2) GunPartBase must be in the -X,-Y,-Y quadrent, with the root node in the middle of the upper left corner.
