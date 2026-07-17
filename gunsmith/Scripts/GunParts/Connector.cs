@@ -24,10 +24,14 @@ public partial class Connector : Area3D
 	{
 	}
 
-	//TODO: try to find an algorithem that does nor require cataloging previously treveresd Conectors
-	public void PropagatePipeLine(FiringPipeLine Pipe, Array<Connector> TreveresdConnectors) { 
+	public void PropagatePipeLine(FiringPipeLine Pipe) {
+		PropagatePipeLine(Pipe, new Array<Connector>());
+
+    }
+
+    //TODO: try to find an algorithem that does nor require cataloging previously treveresd Conectors
+    public void PropagatePipeLine(FiringPipeLine Pipe, Array<Connector> TreveresdConnectors) { 
         this.PipeLine = Pipe;
-		GD.Print(Pipe);
         //Signal that a PipeLine has been assigned
         EmitSignal(SignalName.PartUpdate);
 		//add this node to the treversed nodes

@@ -61,3 +61,19 @@ mesh = SubResource("BoxMesh_vo0l8")
 [node name="DebugOrigin" type="MeshInstance3D" parent="PartPreviewOrigin" unique_id=2133562235]
 visible = false
 mesh = SubResource("BoxMesh_wnxjr")
+
+[node name="Gui" type="CanvasLayer" parent="." unique_id=2027383888]
+
+[node name="Button" type="Button" parent="Gui" unique_id=1313002582]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -48.0
+offset_top = -31.0
+grow_horizontal = 0
+grow_vertical = 0
+size_flags_horizontal = 8
+size_flags_vertical = 8
+text = "Build"
