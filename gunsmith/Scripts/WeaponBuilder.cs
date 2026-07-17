@@ -24,6 +24,11 @@ public partial class WeaponBuilder : Node3D
     private CameraRayCaster CamRayCaster;
     private Node3D PartContainer;
 
+    private Button BuildButton;
+
+    public FiringPipeLine[] WeaponPipeLineArray;
+
+
     [Export]
     public Array<PackedScene> AvailableParts { get; set; }
 	// Called when the node enters the scene tree for the first time.
@@ -36,6 +41,8 @@ public partial class WeaponBuilder : Node3D
         PlacePreview = GetNode<Node3D>("PartPreviewOrigin/PartPreviewPivot/PartPreview");
         PlaceCollider = GetNode<Area3D>("PartPreviewOrigin/PartPreviewPivot/PartPreview/PlaceCollider");
         PlaceColliderShape = (BoxShape3D)GetNode<CollisionShape3D>("PartPreviewOrigin/PartPreviewPivot/PartPreview/PlaceCollider/PlaceColliderShape").Shape;
+
+        BuildButton = GetNode<Button>("Gui/Button");
 
         SelectPart(AvailableParts[0]);
         SelecedIndex = 0;
@@ -52,37 +59,41 @@ public partial class WeaponBuilder : Node3D
     {
 
         (Vector3 Position,GunPart TargetPartBase, Vector3 Normal) = CamRayCaster.MouseRayCast();
-        Position = SnapToGrid(Position);
 
-        //take care of all 6 cases separetly(combining thme coused problems with wierd edge cases).
+        Position = SnapToGrid(Position);
+        Vector3 TargetPos = TargetPartBase.GetParentNode3D().Position;
+        //fuck this god forsaken spaggeti code.
+        //take care of all 6 cases separetly(combining them coused problems with wierd edge cases).
         if (Normal.X > 0.9) {
             
-            Position.X = GetPreviewSizeOffset(Normal).X + 0.5f* Normal.X;
+            Position.X = GetPreviewSizeOffset(Normal).X + 0.5f* Normal.X + TargetPos.X;
         }
         if (Normal.X < -0.9) {
-            Position.X = GetPreviewSizeOffset(Normal).X + (TargetPartBase.size.X - 0.5f) * Normal.X;
+            Position.X = GetPreviewSizeOffset(Normal).X + (TargetPartBase.size.X - 0.5f) * Normal.X+ TargetPos.X;
         }
         if (Normal.Y > 0.9) {
-            Position.Y = GetPreviewSizeOffset(Normal).Y + 0.5f * Normal.Y;
+            Position.Y = GetPreviewSizeOffset(Normal).Y + 0.5f * Normal.Y+ TargetPos.Y;
         }
         if (Normal.Y < -0.9)
         {
-            Position.Y = GetPreviewSizeOffset(Normal).X + (TargetPartBase.size.Y - 0.5f) * Normal.Y;
+            Position.Y = GetPreviewSizeOffset(Normal).Y + (TargetPartBase.size.Y - 0.5f) * Normal.Y+ TargetPos.Y;
+
         }
         if (Normal.Z > 0.9)
         {
-            Position.Z = GetPreviewSizeOffset(Normal).Z + 0.5f * Normal.Z;
+            Position.Z = GetPreviewSizeOffset(Normal).Z + 0.5f * Normal.Z+ TargetPos.Z;
             
         }
         if (Normal.Z < -0.9)
         {
-            Position.Z = GetPreviewSizeOffset(Normal).Z + (TargetPartBase.size.Z - 0.5f) * Normal.Z;
+            Position.Z = GetPreviewSizeOffset(Normal).Z + (TargetPartBase.size.Z - 0.5f) * Normal.Z+ TargetPos.Z;
         }
-
+        
 
 
         //apply position and rotation
         PlacePreviewOrigin.Position = Position;
+
         PlacePreviewPivot.RotationDegrees = PlaceRotation;
         //place part
         if (Input.IsActionJustPressed("fire_weapon")&& !PlaceCollider.HasOverlappingBodies())
@@ -111,6 +122,11 @@ public partial class WeaponBuilder : Node3D
         PartContainer.AddChild(Part);
         Part.Position = Position;
         Part.RotationDegrees = Rotation;
+
+        //connect to Build signal if needed
+        if (Part.HasMethod("ConnectBuildButton")) {
+            Part.Call("ConnectBuildButton", BuildButton, WeaponPipeLineArray);
+        }
     }
 
     public void SelectPart(PackedScene PartScene)
@@ -161,9 +177,9 @@ public partial class WeaponBuilder : Node3D
     }
     //calculate needed offset for the current part's size and rotation. 
     public Vector3 GetPreviewSizeOffset(Vector3 Normal) {
-        GD.Print(Normal + "," + PartPreview.GlobalBasis.X.Normalized());
+        //GD.Print(Normal + "," + PartPreview.GlobalBasis.X.Normalized());
         if (EqualApprox(PartPreview.GlobalBasis.X.Normalized(),Normal)) {
-            GD.Print("Z");
+            //GD.Print("Z");
             
             return Normal*(PartPreviewBase.size.X - 0.5f);
         }

@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://dnub3bga6udmm"]
 
 [ext_resource type="PackedScene" uid="uid://bnx5o7fmi4dnn" path="res://Scenes/GunParts/GunPartComponanent/GunPartBase.tscn" id="1_huokd"]
+[ext_resource type="Script" uid="uid://etxlxlf5r53r" path="res://Scripts/GunParts/LightChamber.cs" id="1_nbdek"]
 [ext_resource type="PackedScene" uid="uid://b8kafrquu8oe7" path="res://Scenes/GunParts/GunPartComponanent/connector.tscn" id="2_nbdek"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_evfly"]
@@ -11,6 +12,7 @@ material = SubResource("StandardMaterial3D_evfly")
 
 [node name="LightChamber" type="Node3D" unique_id=631213023]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0)
+script = ExtResource("1_nbdek")
 
 [node name="GunPartBase" parent="." unique_id=198821929 instance=ExtResource("1_huokd")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.25)
