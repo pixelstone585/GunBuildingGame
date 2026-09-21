@@ -29,4 +29,13 @@ public partial class BuilderCam : Camera3D
 
 		return SpaceState.IntersectRay(query);//calculate and return result
     }
+    public Vector3? MouseRayCastIntersectPlane(Plane plane)
+    {
+        MousePos = GetViewport().GetMousePosition();//update mouse pos
+        Vector3 Origin = ProjectRayOrigin(MousePos);//find ray origin in 3d space
+        Vector3 Direction =  ProjectRayNormal(MousePos);//calculate end position
+
+
+        return plane.IntersectsRay(Origin,Direction);//calculate and return result
+    }
 }
