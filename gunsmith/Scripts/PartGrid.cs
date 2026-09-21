@@ -95,7 +95,14 @@ public partial class PartGrid : Sprite3D
 		bool[,] PartShape = part.ShapeArray;
 		int LenX = PartShape.GetLength(0);
         int LenY = PartShape.GetLength(1);
-		for (int ix = 0; ix < LenX; ix++){
+		int ArrLenX = PartArray.GetLength(0);
+        int ArrLenY = PartArray.GetLength(1);
+		//escape if placing would require going out of bounds
+		if (index[0] + LenX - 1 >= ArrLenX || index[1] + LenY - 1 >= ArrLenY) {
+			return;
+		}
+
+        for (int ix = 0; ix < LenX; ix++){
 			for (int iy = 0; iy < LenY; iy++) {
 				if (PartShape[iy, ix]) {
 					PartArray[index[0] + ix, index[1] + iy] = part;
@@ -112,6 +119,14 @@ public partial class PartGrid : Sprite3D
 		bool[,] PartShape = part.ShapeArray;
         int LenX = PartShape.GetLength(0);
         int LenY = PartShape.GetLength(1);
+        int ArrLenX = PartArray.GetLength(0);
+        int ArrLenY = PartArray.GetLength(1);
+        //return false if placing would require going out of bounds
+        if (index[0] + LenX - 1 >= ArrLenX || index[1] + LenY - 1 >= ArrLenY)
+        {
+            return false;
+        }
+
         for (int ix = 0; ix < LenX; ix++)
         {
             for (int iy = 0; iy < LenY; iy++)

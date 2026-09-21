@@ -22,6 +22,7 @@ public partial class ItemUi : Control
         //TEST CODE
         LoadJson("res://Assets/PartItems/TestItemJson.json");
         NameDisplay.Text = PartName;
+        IconDisplay.Texture = Icon;
     }
     public void Init(String name, String description, PackedScene scene)
     {
@@ -53,7 +54,7 @@ public partial class ItemUi : Control
             PartName = (String)DataDict["Name"];
             Description = (String)DataDict["Description"];
             PartScene = GD.Load<PackedScene>((String)DataDict["ScenePath"]);
-
+            Icon = ItemIconGenerator.Instance.GetIcon(PartScene);
         }
         else {
             GD.PrintErr("Failed to load item: " + error.ToString());
