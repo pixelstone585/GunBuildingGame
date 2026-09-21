@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dj2muwn8svdxc"]
 
-[ext_resource type="Texture2D" uid="uid://dokvem0virgad" path="res://SlotBorder.png" id="1_xqqjp"]
-[ext_resource type="Script" uid="uid://bqgnp77erw2g3" path="res://PartGrid.cs" id="2_w2vec"]
+[ext_resource type="Texture2D" uid="uid://dokvem0virgad" path="res://Assets/SlotBorder.png" id="1_xqqjp"]
+[ext_resource type="Script" uid="uid://bqgnp77erw2g3" path="res://Scripts/PartGrid.cs" id="2_w2vec"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_xqqjp"]
 
