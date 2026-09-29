@@ -26,7 +26,7 @@ orientation = 0
 
 [node name="MuzzleFlash" type="GPUParticles3D" unique_id=1190076942]
 emitting = false
-lifetime = 0.13
+lifetime = 0.060000000000000005
 local_coords = true
 process_material = SubResource("ParticleProcessMaterial_er6cq")
 draw_pass_1 = SubResource("QuadMesh_l036s")

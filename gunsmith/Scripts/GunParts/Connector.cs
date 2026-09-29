@@ -13,7 +13,7 @@ public partial class Connector : Area3D
 	[Signal]
 	public delegate void PartUpdateEventHandler();
 
-	public enum ConnectionTypes {LightAmmo,HeavyAmmo,ShotgunAmmo,Barrel,Mechanical};
+	public enum ConnectionTypes {LightAmmo,HeavyAmmo,ShotgunAmmo,Barrel};
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
 	{
