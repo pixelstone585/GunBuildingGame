@@ -15,7 +15,6 @@ transform = Transform3D(-1, -8.742278e-08, 3.821371e-15, 0, -4.371139e-08, -1, 8
 pixel_size = 0.03125
 GridSize = Vector2i(8, 4)
 Camera = NodePath("../../Camera3D")
-RaycastPlane = Plane(0, 1, 0, 0)
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=268732574]
 transform = Transform3D(-1, 8.742278e-08, 3.821371e-15, 0, -4.371139e-08, 1, 8.742278e-08, 1, 4.371139e-08, 0, 4.5, 0)
@@ -25,3 +24,9 @@ script = ExtResource("3_70c37")
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 7, 0)
 
 [node name="ItemUi" parent="." unique_id=1955620734 instance=ExtResource("4_b3ku6")]
+JsonPath = "res://Assets/PartItems/LightChamberJson.json"
+
+[node name="ItemUi2" parent="." unique_id=1868865368 instance=ExtResource("4_b3ku6")]
+offset_top = 122.0
+offset_bottom = 246.0
+JsonPath = "res://Assets/PartItems/TestItemJson.json"

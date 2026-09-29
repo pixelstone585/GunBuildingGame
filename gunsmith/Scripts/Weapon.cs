@@ -1,24 +1,36 @@
 using Godot;
 using System;
 using System.Runtime.CompilerServices;
+using static FiringPipeLine;
+using static System.Net.Mime.MediaTypeNames;
 
 public partial class Weapon : Node3D
 {
 	[Export]
 	public RayCast3D WeaponRayCast { get; set; }
+    [Export]
+    public Vector3 MuzzlePos { get; set; }
 
-    private FiringPipeLine[] PipeLines = new FiringPipeLine[4];
+    private FiringPipeLine PipeLine;
 
+    public GpuParticles3D MuzzleFlashParticle;
 
+    private double FireDelay;
+    private double FireTimer=0;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
 	{
         //debugging
-        FiringPipeLine tmp = (FiringPipeLine)GetNode("TestingPipeLine");
-        tmp.Init(WeaponRayCast);
+        FiringPipeLine tmp = GetNode<FiringPipeLine>("TestingPipeLine");
         RegisterPipeLine(tmp);
-        
+
+        //get muzzle flash particle
+        MuzzleFlashParticle = GD.Load<PackedScene>("res://Scenes/muzzle_flash.tscn").Instantiate<GpuParticles3D>();
+        MuzzleFlashParticle.OneShot = true;//set it so the emitter shots out all particles at once.
+        AddChild(MuzzleFlashParticle);
+        MuzzleFlashParticle.Position = MuzzlePos;
+
         //fallback if no raycast was assigned
         if (WeaponRayCast == null) {
 			WeaponRayCast = new RayCast3D();
@@ -34,40 +46,110 @@ public partial class Weapon : Node3D
 
     public override void _PhysicsProcess(double delta)
     {
-        for (int i = 0; i < PipeLines.Length; i++) {
-            if (PipeLines[i] != null) {
-                PipeLines[i].PhysicsUpdate(delta);
-            }
+        WeaponRayCast.TargetPosition = -WeaponRayCast.Basis.Z * PipeLine.Range;
+        switch (PipeLine.FireMode)
+        {
+
+            case FireModes.Manual:
+                SemiAuto(delta);
+                //add chambering animation here
+                break;
+
+            case FireModes.semiAuto:
+                SemiAuto(delta);
+                break;
+
+            case FireModes.FullAuto:
+                FullAuto(delta);
+                break;
+
+            default:
+                GD.PushWarning("weapon fire mode is not manual,semi-auto,or full auto. how did you manage that?");
+                break;
         }
     }
 
-    public bool RegisterPipeLine(FiringPipeLine Pipe) {
-        ReParentPipe(Pipe);
-        bool IsSucsessfull = false;
-        for (int i = 0; i < PipeLines.Length && !IsSucsessfull; i++) {
-            if (PipeLines[i] == null) {
-                PipeLines[i] = Pipe;
-                IsSucsessfull = true;
-            }
-        }
-
-        //return if the pipe was registered (eg if there are more then 4)
-        return IsSucsessfull;
+    public void RegisterPipeLine(FiringPipeLine Pipe) {
+        PipeLine = Pipe;
+        //setup variables
+        FireDelay = 1 / (60 * Pipe.RateOfFire);//get the delay between bullets from the rate of fire(rpm -> s/round)
+        WeaponRayCast.TargetPosition = WeaponRayCast.TargetPosition * Pipe.Range;//set raycast range
     }
     public void ClearPipeLines() {
-        for (int i = 0; i < PipeLines.Length; i++)
+        PipeLine = null;
+    }
+
+    private void Fire()
+    {
+        GD.Print("BANG!");
+        Node3D HitNode;
+        float BulletPierce = PipeLine.Pierce;
+        //loop while bullet 
+        while (BulletPierce > 0)
         {
-            PipeLines[i].QueueFree();
-            PipeLines[i] = null;
+            //get collider
+            HitNode = (Node3D)WeaponRayCast.GetCollider();
+            //stop cheacking targets if non were hit
+            if (HitNode == null)
+            {
+                BulletPierce = 0;
+            }
+            //logic for hitting a damageable object
+            if (HitNode is DamageAble)
+            {
+                //(ignore the jankery)update Pierce to prevoius value - targets Pirece threshold
+                BulletPierce = ((DamageAble)HitNode).ProjectileHit(PipeLine.Damage, BulletPierce);
+                //add hit object to blacklist
+                WeaponRayCast.AddException((DamageAble)HitNode);
+            }
+            else
+            {
+                BulletPierce = 0;
+            }
+            //update raycast
+            WeaponRayCast.ForceRaycastUpdate();
+        }
+        //reset blacklist
+        WeaponRayCast.ClearExceptions();
+    }
+
+    public void SemiAuto(double delta) {
+        //reset muzzle flash one tick after it was used
+        if (FireTimer == FireDelay) {
+            MuzzleFlashReset();
+        }
+        if (FireTimer > 0) { FireTimer -= delta; }//step timer
+        //fire if input was presssed and if the delay has passed
+        if (Input.IsActionJustPressed("fire_weapon") && FireTimer <= 0) {
+            Fire();
+            FireTimer = FireDelay;
+            MuzzleFlash();
         }
     }
-    //reaparent FiringPipeline to self
-    private void ReParentPipe(FiringPipeLine Pipe) {
-        Node Parent = Pipe.GetParent();
-        if (Parent != null) {
-            Parent.RemoveChild(Pipe);
-            AddChild(Pipe);
+
+    public void FullAuto(double delta) {
+        //reset muzzle flash one tick after it was used
+        if (FireTimer == FireDelay)
+        {
+            MuzzleFlashReset();
+        }
+        if (FireTimer > 0) { FireTimer -= delta; }//step timer
+        //fire if input was presssed and if the delay has passed
+        if (Input.IsActionPressed("fire_weapon") && FireTimer <= 0)
+        {
+            Fire();
+            FireTimer = FireDelay;
+            MuzzleFlash();
         }
     }
-    
+    private void MuzzleFlashReset()
+    {
+        MuzzleFlashParticle.Emitting = false;
+        MuzzleFlashParticle.Restart();
+    }
+    private void MuzzleFlash()
+    {
+        MuzzleFlashParticle.Emitting = true;
+    }
+
 }

@@ -1,21 +1,25 @@
 using Godot;
 using System;
 
-public partial class LightChamber : Node3D
+public partial class LightChamber : Part
 {
 	Connector AmmoConnector;
 	Connector BarrelConnector;
-	Connector MechanicalConnector;
 
 	[Signal]
 	public delegate void ReturnPipelineEventHandler(FiringPipeLine Pipe);
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		AmmoConnector = GetNode<Connector>("GunPartBase/AmmoConnector");
-		BarrelConnector = GetNode<Connector>("GunPartBase/BarrelConnector");
-		MechanicalConnector = GetNode<Connector>("GunPartBase/MechanicalConnector");
-	}
+		AmmoConnector = GetNode<Connector>("Pivot/PartMesh/AmmoConnector");
+		BarrelConnector = GetNode<Connector>("Pivot/PartMesh/BarrelConnector");
+
+        ShapeArray = new bool[,]
+        {
+            {true,true},
+            { false,false}
+        };
+    }
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
@@ -26,7 +30,6 @@ public partial class LightChamber : Node3D
 		FiringPipeLine Pipe = new FiringPipeLine();
 		AmmoConnector.PropagatePipeLine(Pipe);
 		BarrelConnector.PropagatePipeLine(Pipe);
-		MechanicalConnector.PropagatePipeLine(Pipe);
 		EmitSignal(SignalName.ReturnPipeline, Pipe);
     }
 

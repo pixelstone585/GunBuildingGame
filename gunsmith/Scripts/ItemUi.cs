@@ -1,9 +1,12 @@
 using Godot;
 using Godot.Collections;
 using System;
+using System.Data;
 
 public partial class ItemUi : Control
 {
+    [Export(PropertyHint.File)]
+    public String JsonPath { get; set; }
     public PackedScene PartScene; // scene of the part asociated with the item
     private String PartName; //part name
     private String Description; // part description
@@ -11,6 +14,7 @@ public partial class ItemUi : Control
 
     private Label NameDisplay;
     private TextureRect IconDisplay;
+    private bool hasIcon=false;//flag if the icon property is set yet
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
@@ -20,7 +24,7 @@ public partial class ItemUi : Control
         IconDisplay = GetNode<TextureRect>("Container/PartImage");
 
         //TEST CODE
-        LoadJson("res://Assets/PartItems/TestItemJson.json");
+        LoadJson(JsonPath);
         NameDisplay.Text = PartName;
         IconDisplay.Texture = Icon;
     }
@@ -55,6 +59,7 @@ public partial class ItemUi : Control
             Description = (String)DataDict["Description"];
             PartScene = GD.Load<PackedScene>((String)DataDict["ScenePath"]);
             Icon = ItemIconGenerator.Instance.GetIcon(PartScene);
+            UpdateIcon();
         }
         else {
             GD.PrintErr("Failed to load item: " + error.ToString());
@@ -64,5 +69,22 @@ public partial class ItemUi : Control
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _Process(double delta)
     {
+
+    }
+
+    public override void _PhysicsProcess(double delta)
+    {
+        if (!hasIcon) { 
+            Texture2D val = ItemIconGenerator.Instance.GetIcon(PartScene);
+            GD.Print(val == null);
+            if (val != null) {
+                Icon = val;
+                hasIcon = true;
+                UpdateIcon();
+            }
+        }
+    }
+    public void UpdateIcon() {
+        IconDisplay.Texture = Icon;
     }
 }

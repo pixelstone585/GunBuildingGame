@@ -19,6 +19,8 @@ public partial class PartGrid : Sprite3D
 	Part HeldPart;
 	Vector3 GrabPoint;
 	Vector3 GrabPlaceOffset;
+
+	private uint RayCastMask;
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -27,11 +29,12 @@ public partial class PartGrid : Sprite3D
 		GridCollisionShape = GridArea.GetNode<CollisionShape3D>("GridCollisionShape");
         //create part array
         PartArray = new Part[GridSize[0], GridSize[1]];
-		//TESTING
-		PackedScene TestPartScene = ResourceLoader.Load<PackedScene>("res://Scenes/test_part.tscn");
+		//set collision mask(layer 16)
+		RayCastMask = 0b00000000_00000000_10000000_00000000;
+        //TESTING
+        PackedScene TestPartScene = ResourceLoader.Load<PackedScene>("res://Scenes/test_part.tscn");
 		Part TestPart = CreatePart(TestPartScene);
         PlacePart(TestPart, Vector2I.One);
-		GD.Print(TestPart.GlobalPosition);
 		//--------------------------------
 		//configure gird cell size
 		SLOTSIZEPIX = new Vector2(Texture.GetWidth(), Texture.GetHeight());
@@ -59,7 +62,7 @@ public partial class PartGrid : Sprite3D
             HeldPart=PickUpPart();
 		}
 		if (Input.IsActionPressed("pick_up_part")&&HeldPart!=null) {
-            Dictionary RayCastResult = Camera.MouseRayCast(20, true);
+            Dictionary RayCastResult = Camera.MouseRayCast(20, true,RayCastMask);
 			if (RayCastResult.Count > 0)
 			{
 				Vector3 PartPosition = (Vector3)RayCastResult["position"];
@@ -109,16 +112,15 @@ public partial class PartGrid : Sprite3D
 				}
 			}
 		}
-		part.Position = new Vector3(index[0] + LenX / 2,  index[1] + LenY / 2,0.6f);
-		GD.Print(PartShape[0, 1]);
+		part.Position = new Vector3(index[0] + part.BoundingBoxSize.X / 2,  index[1] + part.BoundingBoxSize.Y / 2,0.6f);
     }
 
 	public bool CanPlace(Part part, Vector2I index) {
 		if (index[0] == -1 && index[1] == -1) { return false; }
 
 		bool[,] PartShape = part.ShapeArray;
-        int LenX = PartShape.GetLength(0);
-        int LenY = PartShape.GetLength(1);
+        int LenX = PartShape.GetLength(1);
+        int LenY = PartShape.GetLength(0);
         int ArrLenX = PartArray.GetLength(0);
         int ArrLenY = PartArray.GetLength(1);
         //return false if placing would require going out of bounds
@@ -187,7 +189,7 @@ public partial class PartGrid : Sprite3D
             return part;
         }
 		//handle taking item from grid
-        Dictionary RayCastResult = Camera.MouseRayCast(20, true);
+        Dictionary RayCastResult = Camera.MouseRayCast(20, true,RayCastMask);
         if (RayCastResult.Count > 0 && GridArea == (Node3D)RayCastResult["collider"])
         {
 			GrabPoint = (Vector3)RayCastResult["position"];
@@ -202,7 +204,6 @@ public partial class PartGrid : Sprite3D
             GrabPoint.Z = 0;
 			Vector3 OriginLocal = part.Position-ToLocal(part.ToGlobal(part.PartOrigin));
 			GrabPlaceOffset = OriginLocal - GrabPoint;
-			GD.Print(GrabPlaceOffset);
             return part;
         }
 		return null;
@@ -215,11 +216,10 @@ public partial class PartGrid : Sprite3D
 	}
 
 	public Vector2I RayCastFindIndex(Vector3 Offset) {
-        Dictionary RayCastResult = Camera.MouseRayCast(20, true);
+        Dictionary RayCastResult = Camera.MouseRayCast(20, true,RayCastMask);
         if (RayCastResult.Count > 0 && GridArea == (Node3D)RayCastResult["collider"])
         {
 			Vector2I index = GetIndexFromPosition((Vector3)RayCastResult["position"]+ Offset);
-			GD.Print((Vector3)RayCastResult["position"] + Offset);
             return index;
         }
 		return -Vector2I.One;

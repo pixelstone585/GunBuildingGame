@@ -87,6 +87,10 @@ rotate_part_clockwise={
 ]
 }
 
+[layer_names]
+
+3d_physics/layer_16="PartGrid"
+
 [physics]
 
 3d/physics_engine="Jolt Physics"

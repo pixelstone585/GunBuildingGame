@@ -7,9 +7,10 @@ public partial class Part : Node3D
 	public Vector2I Index;
     [Export]
     public Vector3 PartOrigin { get; set; }
-
     [Export]
-    public MeshInstance3D mesh { get; set; }
+    public Vector3 BoundingBoxSize { get; set; }
+    [Export]
+    public Node3D Pivot { get; set; }
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -63,14 +64,14 @@ public partial class Part : Node3D
     }
     public void RotateCCW() {
         rotateMatrixCCW(ShapeArray);
-        mesh.RotateObjectLocal(Basis.Z, (float)(Math.PI/2));
+        Pivot.RotateObjectLocal(Basis.Z, (float)(Math.PI/2));
         DebugPrint(ShapeArray);
 
     }
     public void RotateCW()
     {
         rotateMatrixCW(ShapeArray);
-        mesh.RotateObjectLocal(Basis.Z, -(float)(Math.PI / 2));
+        Pivot.RotateObjectLocal(Basis.Z, -(float)(Math.PI / 2));
         DebugPrint(ShapeArray);
     }
     public void DebugPrint(bool[,] arr) {
