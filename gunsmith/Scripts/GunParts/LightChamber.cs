@@ -13,12 +13,15 @@ public partial class LightChamber : Part
 	{
 		AmmoConnector = GetNode<Connector>("Pivot/PartMesh/AmmoConnector");
 		BarrelConnector = GetNode<Connector>("Pivot/PartMesh/BarrelConnector");
-
-        ShapeArray = new bool[,]
+		Init();
+    }
+    public override void init() //called when Init() is called
+    {
+        bool[,] ShapeArray = new bool[,]
         {
-            {true,true},
-            { false,false}
+            {true,true}
         };
+        CreateShapeArrays(ShapeArray);
     }
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.

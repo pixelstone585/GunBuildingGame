@@ -1,6 +1,7 @@
 using Godot;
 using Godot.Collections;
 using System;
+using System.Reflection;
 using System.Xml;
 
 public partial class PartGrid : Sprite3D
@@ -28,12 +29,13 @@ public partial class PartGrid : Sprite3D
 		GridArea = GetNode<Area3D>("GridArea");
 		GridCollisionShape = GridArea.GetNode<CollisionShape3D>("GridCollisionShape");
         //create part array
-        PartArray = new Part[GridSize[0], GridSize[1]];
+        PartArray = new Part[GridSize.Y, GridSize.X];
 		//set collision mask(layer 16)
 		RayCastMask = 0b00000000_00000000_10000000_00000000;
         //TESTING
         PackedScene TestPartScene = ResourceLoader.Load<PackedScene>("res://Scenes/test_part.tscn");
 		Part TestPart = CreatePart(TestPartScene);
+		TestPart.Init();
         PlacePart(TestPart, Vector2I.One);
 		//--------------------------------
 		//configure gird cell size
@@ -66,7 +68,7 @@ public partial class PartGrid : Sprite3D
 			if (RayCastResult.Count > 0)
 			{
 				Vector3 PartPosition = (Vector3)RayCastResult["position"];
-				HeldPart.Position = ToLocal(PartPosition)+GrabPoint;
+				HeldPart.Position = ToLocal(PartPosition)-GrabPoint;
 			}
         }
 		if (Input.IsActionJustReleased("pick_up_part") && HeldPart != null ) { 
@@ -74,16 +76,17 @@ public partial class PartGrid : Sprite3D
 			
 			if (!(PlaceIndex[0] == -1 || PlaceIndex[1] == -1) && CanPlace(HeldPart, PlaceIndex))
 			{
+				GD.Print(PlaceIndex);
 				PlacePart(HeldPart, PlaceIndex);
             }
 			else {
-				HeldPart.QueueFree();
-			}
+                ReturnPartToInventory(HeldPart);
+            }
 		}
 
 		//rotate held part
 		if (Input.IsActionPressed("pick_up_part") && HeldPart != null && Input.IsActionJustPressed("rotate_part_counter_clockwise")) {
-			HeldPart.RotateCCW();
+            HeldPart.RotateCCW();
 
 		}
         if (Input.IsActionPressed("pick_up_part") && HeldPart != null && Input.IsActionJustPressed("rotate_part_clockwise"))
@@ -91,53 +94,57 @@ public partial class PartGrid : Sprite3D
             HeldPart.RotateCW();
         }
     }
-
+	//REMEMBER!!!! X=WIDTH=INDEX1 Y=HEIGHT=INDEX0
 	public void PlacePart(Part part, Vector2I index)
 	{
 		part.Index = index;
-		bool[,] PartShape = part.ShapeArray;
-		int LenX = PartShape.GetLength(0);
-        int LenY = PartShape.GetLength(1);
-		int ArrLenX = PartArray.GetLength(0);
-        int ArrLenY = PartArray.GetLength(1);
-		//escape if placing would require going out of bounds
-		if (index[0] + LenX - 1 >= ArrLenX || index[1] + LenY - 1 >= ArrLenY) {
-			return;
+		bool[,] PartShape = part.GetShapeArray();
+		int LenY = PartShape.GetLength(0);
+        int LenX = PartShape.GetLength(1);
+		int ArrLenY = PartArray.GetLength(0);
+        int ArrLenX = PartArray.GetLength(1);
+		//failsafe: escape if placing would require going out of bounds
+		if (index.X + LenX - 1 >= ArrLenX || index[1] + LenY - 1 >= ArrLenY) {
+			ReturnPartToInventory(part);
+            return;
 		}
 
-        for (int ix = 0; ix < LenX; ix++){
-			for (int iy = 0; iy < LenY; iy++) {
+        for (int iy = 0; iy < LenY; iy++){
+			for (int ix = 0; ix < LenX; ix++) {
 				if (PartShape[iy, ix]) {
-					PartArray[index[0] + ix, index[1] + iy] = part;
+					PartArray[index.Y + iy, index.X + ix] = part;
 				}
 			}
 		}
-		part.Position = new Vector3(index[0] + part.BoundingBoxSize.X / 2,  index[1] + part.BoundingBoxSize.Y / 2,0.6f);
+		Vector3 PartOriginLocal = part.GetPartOrigin();
+		part.Position = new Vector3(index[0]+ PartOriginLocal.X+0.5f,  index[1] + PartOriginLocal.Y+0.5f,0.6f);
     }
 
 	public bool CanPlace(Part part, Vector2I index) {
 		if (index[0] == -1 && index[1] == -1) { return false; }
 
-		bool[,] PartShape = part.ShapeArray;
-        int LenX = PartShape.GetLength(1);
+		bool[,] PartShape = part.GetShapeArray();
         int LenY = PartShape.GetLength(0);
-        int ArrLenX = PartArray.GetLength(0);
-        int ArrLenY = PartArray.GetLength(1);
+        int LenX = PartShape.GetLength(1);
+        int ArrLenY = PartArray.GetLength(0);
+        int ArrLenX = PartArray.GetLength(1);
         //return false if placing would require going out of bounds
-        if (index[0] + LenX - 1 >= ArrLenX || index[1] + LenY - 1 >= ArrLenY)
+        if (index.X + LenX - 1 >= ArrLenX || index[1] + LenY - 1 >= ArrLenY)
         {
+			GD.Print(index+","+(index.X + LenX - 1)+","+ ArrLenX);
             return false;
         }
 
-        for (int ix = 0; ix < LenX; ix++)
+        for (int iy = 0; iy < LenY; iy++)
         {
-            for (int iy = 0; iy < LenY; iy++)
+            for (int ix = 0; ix < LenX; ix++)
             {
                 if (PartShape[iy, ix])
                 {
-					if (PartArray[index[0] + ix, index[1] + iy] != null) {
-						return false;
-					}
+                    if (PartArray[index.Y + iy, index.X + ix] != null)
+                    {
+                        return false;
+                    }
                 }
             }
         }
@@ -145,26 +152,31 @@ public partial class PartGrid : Sprite3D
     }
 
 	public Part RemovePart(Vector2I Index) {
-		Part part = PartArray[Index[0], Index[1]];
+		Part part = PartArray[Index.Y, Index.X];
 		if (part == null) {
 			return null;
 		}
 		Vector2I PartIndex = part.Index;
-        bool[,] PartShape = part.ShapeArray;
-        int LenX = PartShape.GetLength(0);
-        int LenY = PartShape.GetLength(1);
-        for (int ix = 0; ix < LenX; ix++)
+        bool[,] PartShape = part.GetShapeArray();
+        int LenY = PartShape.GetLength(0);
+        int LenX = PartShape.GetLength(1);
+        for (int iy = 0; iy < LenY; iy++)
         {
-            for (int iy = 0; iy < LenY; iy++)
+            for (int ix = 0; ix < LenX; ix++)
             {
                 if (PartShape[iy, ix])
                 {
-					PartArray[PartIndex[0] + ix, PartIndex[1] + iy] = null;
+                    PartArray[PartIndex.Y + iy, PartIndex.X + ix] = null;
                 }
             }
         }
 		return part;
     }
+
+	public void ReturnPartToInventory(Part part) {
+		part.QueueFree();
+		//ADD INVENTORY CODE HERE
+	}
 
 	public Vector2I GetIndexFromPosition(Vector2 Position) {
 		Vector2I index = (Vector2I)Position;
@@ -176,10 +188,11 @@ public partial class PartGrid : Sprite3D
 	}
 	public Vector2I GetIndexFromPosition(Vector3 WorldPosition) {
 		Vector3 localPos = ToLocal(WorldPosition);//convert to local coordinants
+		GD.Print(localPos+"--");
 		return GetIndexFromPosition(new Vector2(localPos[0], localPos[1]));//get xy componants
     }
 
-	public Part PickUpPart() {
+    public Part PickUpPart() {
 		//handle taking parts from inventory
 		Control UiClickedOn = GetViewport().GuiGetHoveredControl();
         if ( UiClickedOn != null && UiClickedOn.Owner is ItemUi) {
@@ -200,10 +213,11 @@ public partial class PartGrid : Sprite3D
 			}
 
 			//figure out where the part is bieng grabbed from
-            GrabPoint = part.Position-ToLocal(GrabPoint) ;
+            GrabPoint = ToLocal(GrabPoint)-part.Position ;
             GrabPoint.Z = 0;
-			Vector3 OriginLocal = part.Position-ToLocal(part.ToGlobal(part.PartOrigin));
-			GrabPlaceOffset = OriginLocal - GrabPoint;
+			GrabPoint = GrabPoint.Snapped(0.5f);//snap to 0.5 incraments
+			Vector3 OriginLocal = part.GetPartOrigin();
+			GrabPlaceOffset = OriginLocal + GrabPoint;
             return part;
         }
 		return null;
@@ -219,7 +233,10 @@ public partial class PartGrid : Sprite3D
         Dictionary RayCastResult = Camera.MouseRayCast(20, true,RayCastMask);
         if (RayCastResult.Count > 0 && GridArea == (Node3D)RayCastResult["collider"])
         {
-			Vector2I index = GetIndexFromPosition((Vector3)RayCastResult["position"]+ Offset);
+			Vector3 RayCastResultRaw = (Vector3)RayCastResult["position"];
+			Vector3 RayCastResultOffset = new Vector3(RayCastResultRaw.X + Offset.X, RayCastResultRaw.Y, RayCastResultRaw.Z + Offset.Y);
+            Vector2I index = GetIndexFromPosition(RayCastResultOffset);
+			GD.Print(index+","+ Offset+","+ RayCastResultOffset);
             return index;
         }
 		return -Vector2I.One;

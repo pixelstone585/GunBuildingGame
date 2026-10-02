@@ -12,14 +12,13 @@ size = Vector3(2, 1, 1)
 
 [node name="LightChamber" type="Node3D" unique_id=824196650 node_paths=PackedStringArray("Pivot")]
 script = ExtResource("1_nbdek")
-PartOrigin = Vector3(-0.5, 0.5, 0)
+TopLeftPosition = Vector3(-0.5, 0, 0)
 BoundingBoxSize = Vector3(2, 2, 0)
 Pivot = NodePath("Pivot")
 
 [node name="Pivot" type="Node3D" parent="." unique_id=756066331]
 
 [node name="PartMesh" type="MeshInstance3D" parent="Pivot" unique_id=816102666]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 mesh = SubResource("BoxMesh_nbdek")
 
 [node name="AmmoConnector" parent="Pivot/PartMesh" unique_id=1053808450 instance=ExtResource("2_nbdek")]
