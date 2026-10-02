@@ -37,7 +37,7 @@ public partial class ItemIconGenerator : SubViewport
 		PrevPart = part;
 		isWorking = false;
 	}
-	public Texture2D GetIcon(PackedScene PartScene) {
+    public Texture2D GetIcon(PackedScene PartScene) {
 		if (ItemIcons.ContainsKey(PartScene.ResourcePath)) {
             return ItemIcons[PartScene.ResourcePath];
         }

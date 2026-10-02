@@ -22,11 +22,13 @@ public partial class ItemUi : Control
         //get nodes
         NameDisplay = GetNode<Label>("Container/PartName");
         IconDisplay = GetNode<TextureRect>("Container/PartImage");
+        
 
         //TEST CODE
         LoadJson(JsonPath);
         NameDisplay.Text = PartName;
         IconDisplay.Texture = Icon;
+
     }
     public void Init(String name, String description, PackedScene scene)
     {
@@ -74,12 +76,11 @@ public partial class ItemUi : Control
 
     public override void _PhysicsProcess(double delta)
     {
-        if (!hasIcon) { 
-            Texture2D val = ItemIconGenerator.Instance.GetIcon(PartScene);
-            GD.Print(val == null);
-            if (val != null) {
-                Icon = val;
-                hasIcon = true;
+        //not using a callback becuse of stupid quque jank
+        if (!hasIcon) {
+            Texture2D tmp =ItemIconGenerator.Instance.GetIcon(PartScene);
+            if (tmp != null) {
+                Icon = tmp;
                 UpdateIcon();
             }
         }
