@@ -14,5 +14,7 @@ public partial class FiringPipeLine : Node3D
     public FireModes FireMode = FireModes.Manual;
     [Export]
     public float Range = 100f;
+    [Export]
+    public bool IsValid = false;
 
 }

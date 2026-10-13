@@ -11,12 +11,16 @@ public partial class Weapon : Node3D
     [Export]
     public Vector3 MuzzlePos { get; set; }
 
+    public bool CanFire = true;
+
     private FiringPipeLine PipeLine;
 
     public GpuParticles3D MuzzleFlashParticle;
 
     private double FireDelay;
     private double FireTimer=0;
+
+    public BuilderRoot builderroot { get; private set; }
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -30,6 +34,9 @@ public partial class Weapon : Node3D
         MuzzleFlashParticle.OneShot = true;//set it so the emitter shots out all particles at once.
         AddChild(MuzzleFlashParticle);
         MuzzleFlashParticle.Position = MuzzlePos;
+
+        //create builder instance
+        builderroot = GD.Load<PackedScene>("res://Scenes/builder_root.tscn").Instantiate<BuilderRoot>();
 
         //fallback if no raycast was assigned
         if (WeaponRayCast == null) {
@@ -71,6 +78,7 @@ public partial class Weapon : Node3D
 
     public void RegisterPipeLine(FiringPipeLine Pipe) {
         PipeLine = Pipe;
+        AllowFiring(CanFire);
         //setup variables
         FireDelay = 1 / (60 * Pipe.RateOfFire);//get the delay between bullets from the rate of fire(rpm -> s/round)
         WeaponRayCast.TargetPosition = WeaponRayCast.TargetPosition * Pipe.Range;//set raycast range
@@ -120,7 +128,7 @@ public partial class Weapon : Node3D
         }
         if (FireTimer > 0) { FireTimer -= delta; }//step timer
         //fire if input was presssed and if the delay has passed
-        if (Input.IsActionJustPressed("fire_weapon") && FireTimer <= 0) {
+        if (Input.IsActionJustPressed("fire_weapon") && FireTimer <= 0 && CanFire) {
             Fire();
             FireTimer = FireDelay;
             MuzzleFlash();
@@ -135,7 +143,7 @@ public partial class Weapon : Node3D
         }
         if (FireTimer > 0) { FireTimer -= delta; }//step timer
         //fire if input was presssed and if the delay has passed
-        if (Input.IsActionPressed("fire_weapon") && FireTimer <= 0)
+        if (Input.IsActionPressed("fire_weapon") && FireTimer <= 0 && CanFire)
         {
             Fire();
             FireTimer = FireDelay;
@@ -150,6 +158,27 @@ public partial class Weapon : Node3D
     private void MuzzleFlash()
     {
         MuzzleFlashParticle.Emitting = true;
+    }
+
+    public void LoadBuilder() {
+        AddChild(builderroot);
+        builderroot.ProcessMode = ProcessModeEnum.Inherit;//unpause processing
+        //connect signal
+        builderroot.ReturnPipeline += SetPipeLine;
+    }
+
+    public void UnLoadBuilder() {
+        RemoveChild(builderroot);
+        builderroot.ProcessMode = ProcessModeEnum.Disabled;//pause processing
+        GD.Print("unload");
+    }
+
+    public void SetPipeLine(FiringPipeLine Pipe) {
+        RegisterPipeLine(Pipe);
+    }
+
+    public void AllowFiring(bool Allow) {
+        CanFire = Allow && PipeLine.IsValid;
     }
 
 }
