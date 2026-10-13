@@ -24,13 +24,22 @@ public partial class Connector : Area3D
 	{
 	}
 
+	public void PairConnector(Connector other) {
+		if (!PairedConnectors.Contains(other)) {
+            PairedConnectors.Add(other);
+        }
+		if (!other.PairedConnectors.Contains(this)) {
+			other.PairedConnectors.Add(this);
+		}
+	}
+
 	public void PropagatePipeLine(FiringPipeLine Pipe) {
 		PropagatePipeLine(Pipe, new Array<Connector>());
 
     }
 
     //TODO: try to find an algorithem that does nor require cataloging previously treveresd Conectors
-    public void PropagatePipeLine(FiringPipeLine Pipe, Array<Connector> TreveresdConnectors) { 
+    public void PropagatePipeLine(FiringPipeLine Pipe, Array<Connector> TreveresdConnectors) {
         this.PipeLine = Pipe;
         //Signal that a PipeLine has been assigned
         EmitSignal(SignalName.PartUpdate);
@@ -42,11 +51,10 @@ public partial class Connector : Area3D
 			if( !IsConnectorInGArray(connector, TreveresdConnectors))//&& 
             {
 				connector.PropagatePipeLine(Pipe, TreveresdConnectors);
-			}
+            }
 		}
         Connector ExternalConnector = GetConnected();
 		if (ExternalConnector !=null && !IsConnectorInGArray(ExternalConnector, TreveresdConnectors)) {
-			GD.Print("pass");
 			ExternalConnector.PropagatePipeLine(Pipe, TreveresdConnectors);
         }
 
@@ -72,12 +80,13 @@ public partial class Connector : Area3D
 
 	public Connector GetConnected() {
 		Array<Area3D> OverlappingAreas = GetOverlappingAreas();
+		
 		//search for overlapping connectors
 		foreach (Area3D Area in OverlappingAreas) {
 			if (Area is Connector) {
 				Connector FoundConnector = (Connector)Area;
-				//return if a valid connector was found and isnt in pairedConnectors
-				if (!IsConnectorInGArray(FoundConnector,PairedConnectors)&& IsConnectorCompatible(FoundConnector))
+                //return if a valid connector was found and isnt in pairedConnectors
+                if (!IsConnectorInGArray(FoundConnector,PairedConnectors)&& IsConnectorCompatible(FoundConnector))
 				{
                     return FoundConnector;
                 }
@@ -90,7 +99,8 @@ public partial class Connector : Area3D
 		bool ret = false;
 
 		//check for full overlap
-		ret = ret && (other.GlobalPosition == GlobalPosition) && (other.Scale == Scale);
+		//ret = ret || (other.GlobalPosition == GlobalPosition) && (other.Scale == Scale);
+		ret = true;
 		//check fo matching type
 		ret = ret && (other.Type == Type);
 		return ret;

@@ -42,14 +42,18 @@ public partial class PlayerBean : CharacterBody3D
     private Vector3 _targetVelocity = Vector3.Zero;
     private Node3D Pivot;
     private Camera3D Camera;
+    private Weapon PWeapon;
 
     private float BobAcumulator = 0;
+
+    private bool IsBuilderOpen = false;
 
 
     public override void _Ready()
     {
         Pivot = GetNode<Node3D>("Pivot");//get pivot node
         Camera = Pivot.GetNode<Camera3D>("PlayerCam");//get camera node
+        PWeapon = GetNode<Weapon>("Pivot/Weapon");
         Input.MouseMode = Input.MouseModeEnum.Captured;//lock mouse
     }
 
@@ -63,13 +67,20 @@ public partial class PlayerBean : CharacterBody3D
     //update physics
     public override void _PhysicsProcess(double delta)
     {
-        walk(delta);
-        cameraBobing(delta);
+        if (Input.IsActionJustPressed("open_builder")) {
+            ToggleBuilder();
+        }
+        if (!IsBuilderOpen) {
+            walk(delta);
+            cameraBobing(delta);
+        }
+       
     }
+
 
     public override void _Input(InputEvent @event)//note to self: @name is used when name is a reserved keyword
     {
-        if (@event is InputEventMouseMotion) {
+        if (@event is InputEventMouseMotion && !IsBuilderOpen) {
             look(@event as InputEventMouseMotion);//pass @event as type InputEventMouseMotion
         }
     }
@@ -159,5 +170,23 @@ public partial class PlayerBean : CharacterBody3D
         Camera.Position = new Vector3(CosX, SineY, Camera.Position.Z);
 
 
+    }
+
+    public void ToggleBuilder() {
+        if (!IsBuilderOpen)
+        {
+            Input.MouseMode = Input.MouseModeEnum.Visible;//release mouse
+            PWeapon.LoadBuilder();
+            PWeapon.builderroot.GetNode<Camera3D>("BuilderCam").MakeCurrent();
+            IsBuilderOpen = true;
+            PWeapon.AllowFiring(false);
+        }
+        else {
+            Input.MouseMode = Input.MouseModeEnum.Captured;//release mouse
+            Camera.MakeCurrent();
+            PWeapon.UnLoadBuilder();
+            IsBuilderOpen = false;
+            PWeapon.AllowFiring(true);
+        }
     }
 }

@@ -10,6 +10,10 @@ public partial class PartGrid : Sprite3D
 	Vector2I GridSize { get; set; }
 	[Export]
 	BuilderCam Camera { get; set; }
+	[Export]
+	Button BuildButton { get; set; }
+	[Export]
+	BuilderRoot BuilderRootNode { get; set; }
 
 	Vector2 SLOTSIZEPIX;
 	Part[,] PartArray;
@@ -20,6 +24,8 @@ public partial class PartGrid : Sprite3D
 	Part HeldPart;
 	Vector3 GrabPoint;
 	Vector3 GrabPlaceOffset;
+
+	
 
 	private uint RayCastMask;
 	// Called when the node enters the scene tree for the first time.
@@ -32,11 +38,6 @@ public partial class PartGrid : Sprite3D
         PartArray = new Part[GridSize.Y, GridSize.X];
 		//set collision mask(layer 16)
 		RayCastMask = 0b00000000_00000000_10000000_00000000;
-        //TESTING
-        PackedScene TestPartScene = ResourceLoader.Load<PackedScene>("res://Scenes/test_part.tscn");
-		Part TestPart = CreatePart(TestPartScene);
-		TestPart.Init();
-        PlacePart(TestPart, Vector2I.One);
 		//--------------------------------
 		//configure gird cell size
 		SLOTSIZEPIX = new Vector2(Texture.GetWidth(), Texture.GetHeight());
@@ -118,6 +119,12 @@ public partial class PartGrid : Sprite3D
 		}
 		Vector3 PartOriginLocal = part.GetPartOrigin();
 		part.Position = new Vector3(index[0]+ PartOriginLocal.X+0.5f,  index[1] + PartOriginLocal.Y+0.5f,0.6f);
+
+		if (part.IsInGroup("Chamber")) {
+			BuildInitiator bi = (BuildInitiator)part.FindChild("BuildInitiator");
+			bi.ReturnSignalEmitter = BuilderRootNode;
+			bi.ConnectBuildButton(BuildButton);
+		}
     }
 
 	public bool CanPlace(Part part, Vector2I index) {
@@ -225,6 +232,7 @@ public partial class PartGrid : Sprite3D
 
 	public Part CreatePart(PackedScene PartScene) {
 		Part NewPart = PartScene.Instantiate<Part>();
+		SetRenderingLayerRecursive(NewPart);
 		AddChild(NewPart);
 		return NewPart;
 	}
@@ -241,4 +249,20 @@ public partial class PartGrid : Sprite3D
         }
 		return -Vector2I.One;
     }
+
+	public void SetRenderingLayerRecursive(Node node) {
+		if (node == null) { return; }
+		if (node is VisualInstance3D) {
+			VisualInstance3D Vnode = (VisualInstance3D)node;
+			Vnode.SetLayerMaskValue(2, true);
+		}
+
+		if (node.GetChildCount() > 0) { 
+			Array<Node> Children = node.GetChildren();
+			foreach (Node item in Children)
+			{
+				SetRenderingLayerRecursive(item);
+			}
+		}
+	}
 }
