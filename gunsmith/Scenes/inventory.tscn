@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://cudo8l02l2dr2"]
+
+[ext_resource type="Script" uid="uid://c4wpribhnxrkj" path="res://Scripts/Inventory.cs" id="1_wdn4f"]
+
+[node name="Inventory" type="Control" unique_id=249043885 node_paths=PackedStringArray("InventoryGrid")]
+layout_mode = 3
+anchors_preset = 0
+size_flags_horizontal = 0
+script = ExtResource("1_wdn4f")
+InventoryGrid = NodePath("ScrollContainer/GridContainer")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=2039418522]
+layout_mode = 0
+offset_left = 46.0
+offset_right = 276.0
+offset_bottom = 648.0
+horizontal_scroll_mode = 0
+
+[node name="GridContainer" type="GridContainer" parent="ScrollContainer" unique_id=1716264929]
+layout_mode = 2
+columns = 2

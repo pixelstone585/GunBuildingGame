@@ -2,16 +2,18 @@
 
 [ext_resource type="Script" uid="uid://vxfik5dch8mp" path="res://Scripts/PlayerBean.cs" id="1_f03au"]
 [ext_resource type="PackedScene" uid="uid://0mkr5w2akmhm" path="res://Scenes/weapon.tscn" id="2_d86tk"]
+[ext_resource type="PackedScene" uid="uid://cudo8l02l2dr2" path="res://Scenes/inventory.tscn" id="3_rsdb4"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_eysms"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_f03au"]
 size = Vector3(1, 2.0129242, 1)
 
-[node name="Player" type="CharacterBody3D" unique_id=1988208691]
+[node name="Player" type="CharacterBody3D" unique_id=1988208691 node_paths=PackedStringArray("inventory")]
 script = ExtResource("1_f03au")
 FallAcc = 14
 JumpStrength = 5
+inventory = NodePath("Inventory")
 
 [node name="Pivot" type="Node3D" parent="." unique_id=1602980408]
 
@@ -21,16 +23,14 @@ mesh = SubResource("CapsuleMesh_eysms")
 [node name="PlayerCam" type="Camera3D" parent="Pivot" unique_id=1751374893]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.47375697, 0)
 
-[node name="PlayerRayCast" type="RayCast3D" parent="Pivot/PlayerCam" unique_id=1574545262]
-target_position = Vector3(0, 0, -1)
-debug_shape_custom_color = Color(0, 1, 0, 1)
-
-[node name="Weapon" parent="Pivot" unique_id=1923408279 node_paths=PackedStringArray("WeaponRayCast") instance=ExtResource("2_d86tk")]
+[node name="Weapon" parent="Pivot" unique_id=1923408279 node_paths=PackedStringArray("ProjectileSpawnerNode") instance=ExtResource("2_d86tk")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5571861, 0.21202514, -0.75755787)
-WeaponRayCast = NodePath("../PlayerCam/PlayerRayCast")
-RateOfFire = 200.0
-FireMode = 2
+ProjectileSpawnerNode = NodePath("../PlayerCam")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=383364049]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.0035934448, 0)
 shape = SubResource("BoxShape3D_f03au")
+
+[node name="Inventory" parent="." unique_id=249043885 instance=ExtResource("3_rsdb4")]
+process_mode = 4
+visible = false

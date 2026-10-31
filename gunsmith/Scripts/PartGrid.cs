@@ -232,6 +232,7 @@ public partial class PartGrid : Sprite3D
 
 	public Part CreatePart(PackedScene PartScene) {
 		Part NewPart = PartScene.Instantiate<Part>();
+		NewPart.AssignPath(PartScene.ResourcePath);
 		SetRenderingLayerRecursive(NewPart);
 		AddChild(NewPart);
 		return NewPart;
