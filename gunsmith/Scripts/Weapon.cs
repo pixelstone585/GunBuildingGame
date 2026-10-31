@@ -6,10 +6,10 @@ using static System.Net.Mime.MediaTypeNames;
 
 public partial class Weapon : Node3D
 {
-	[Export]
-	public RayCast3D WeaponRayCast { get; set; }
     [Export]
     public Vector3 MuzzlePos { get; set; }
+    [Export]
+    public Node3D ProjectileSpawnerNode { get; set; }
 
     public bool CanFire = true;
 
@@ -19,6 +19,7 @@ public partial class Weapon : Node3D
 
     private double FireDelay;
     private double FireTimer=0;
+    private PackedScene ProjectileScene;
 
     public BuilderRoot builderroot { get; private set; }
 
@@ -38,12 +39,8 @@ public partial class Weapon : Node3D
         //create builder instance
         builderroot = GD.Load<PackedScene>("res://Scenes/builder_root.tscn").Instantiate<BuilderRoot>();
 
-        //fallback if no raycast was assigned
-        if (WeaponRayCast == null) {
-			WeaponRayCast = new RayCast3D();
-            AddChild(WeaponRayCast);
-			GD.PushWarning("Weapon has not been assigned a raycast node, creating fallback node.");
-		}
+        //load Projectile Scene
+        ProjectileScene = GD.Load<PackedScene>("res://Scenes/projectile.tscn");
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -53,7 +50,6 @@ public partial class Weapon : Node3D
 
     public override void _PhysicsProcess(double delta)
     {
-        WeaponRayCast.TargetPosition = -WeaponRayCast.Basis.Z * PipeLine.Range;
         switch (PipeLine.FireMode)
         {
 
@@ -81,7 +77,6 @@ public partial class Weapon : Node3D
         AllowFiring(CanFire);
         //setup variables
         FireDelay = 1 / (60 * Pipe.RateOfFire);//get the delay between bullets from the rate of fire(rpm -> s/round)
-        WeaponRayCast.TargetPosition = WeaponRayCast.TargetPosition * Pipe.Range;//set raycast range
     }
     public void ClearPipeLines() {
         PipeLine = null;
@@ -89,36 +84,16 @@ public partial class Weapon : Node3D
 
     private void Fire()
     {
-        GD.Print("BANG!");
-        Node3D HitNode;
-        float BulletPierce = PipeLine.Pierce;
-        //loop while bullet 
-        while (BulletPierce > 0)
-        {
-            //get collider
-            HitNode = (Node3D)WeaponRayCast.GetCollider();
-            //stop cheacking targets if non were hit
-            if (HitNode == null)
-            {
-                BulletPierce = 0;
-            }
-            //logic for hitting a damageable object
-            if (HitNode is DamageAble)
-            {
-                //(ignore the jankery)update Pierce to prevoius value - targets Pirece threshold
-                BulletPierce = ((DamageAble)HitNode).ProjectileHit(PipeLine.Damage, BulletPierce);
-                //add hit object to blacklist
-                WeaponRayCast.AddException((DamageAble)HitNode);
-            }
-            else
-            {
-                BulletPierce = 0;
-            }
-            //update raycast
-            WeaponRayCast.ForceRaycastUpdate();
-        }
-        //reset blacklist
-        WeaponRayCast.ClearExceptions();
+        //GD.Print("BANG!");
+        Projectile NewProjectile = ProjectileScene.Instantiate<Projectile>();
+        GetTree().CurrentScene.AddChild(NewProjectile);//reparents to root scene
+
+        NewProjectile.GlobalPosition = ProjectileSpawnerNode.GlobalPosition;
+        NewProjectile.LookAt(ProjectileSpawnerNode.ToGlobal(-Vector3.Forward));
+
+        NewProjectile.Damage = PipeLine.Damage;
+        NewProjectile.Pierce = PipeLine.Pierce;
+        NewProjectile.Speed = PipeLine.MuzzleVelocity;
     }
 
     public void SemiAuto(double delta) {

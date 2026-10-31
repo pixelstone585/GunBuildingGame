@@ -12,6 +12,7 @@ public abstract partial class Part : Node3D
     [Export]
     public Node3D Pivot { get; set; }
     private int ShapeRotation=0;
+    private String part_json_path;
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -23,6 +24,14 @@ public abstract partial class Part : Node3D
     }
     public virtual void init() {
         return;
+    }
+    public void AssignPath(String path) {
+        if (part_json_path == null) {
+            part_json_path = path;
+        }
+    }
+    public String GetPartPath() {
+        return part_json_path;
     }
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)

@@ -12,6 +12,9 @@ public partial class ItemUi : Control
     private String Description; // part description
     private Texture2D Icon; // part icon. TODO: find out how to generate on runtime
 
+    public int Quantity=1;
+    public String PartPath;
+
     private Label NameDisplay;
     private TextureRect IconDisplay;
     private bool hasIcon=false;//flag if the icon property is set yet
@@ -22,12 +25,15 @@ public partial class ItemUi : Control
         //get nodes
         NameDisplay = GetNode<Label>("Container/PartName");
         IconDisplay = GetNode<TextureRect>("Container/PartImage");
-        
+
 
         //TEST CODE
-        LoadJson(JsonPath);
-        NameDisplay.Text = PartName;
-        IconDisplay.Texture = Icon;
+        if (JsonPath != null) {
+            LoadJson(JsonPath);
+            NameDisplay.Text = PartName;
+            IconDisplay.Texture = Icon;
+        }
+        
 
     }
     public void Init(String name, String description, PackedScene scene)
@@ -60,12 +66,15 @@ public partial class ItemUi : Control
             PartName = (String)DataDict["Name"];
             Description = (String)DataDict["Description"];
             PartScene = GD.Load<PackedScene>((String)DataDict["ScenePath"]);
+            PartPath = (String)DataDict["ScenePath"];
             Icon = ItemIconGenerator.Instance.GetIcon(PartScene);
-            UpdateIcon();
+            //UpdateIcon();
         }
         else {
             GD.PrintErr("Failed to load item: " + error.ToString());
         }
+        NameDisplay.Text = PartName;
+        IconDisplay.Texture = Icon;
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.

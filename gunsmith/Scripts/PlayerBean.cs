@@ -36,6 +36,9 @@ public partial class PlayerBean : CharacterBody3D
     [Export]
     public float MaxFov { get; set; } = 150f;
 
+    [Export]
+    public Inventory inventory { get; set; }
+
     [Signal]
     public delegate void OpenWeaponBuilderEventHandler();
 
@@ -48,13 +51,17 @@ public partial class PlayerBean : CharacterBody3D
 
     private bool IsBuilderOpen = false;
 
-
+    
     public override void _Ready()
     {
         Pivot = GetNode<Node3D>("Pivot");//get pivot node
         Camera = Pivot.GetNode<Camera3D>("PlayerCam");//get camera node
         PWeapon = GetNode<Weapon>("Pivot/Weapon");
         Input.MouseMode = Input.MouseModeEnum.Captured;//lock mouse
+
+        //testing
+        GD.Print("Create");
+        inventory.AddPart("res://Assets/PartItems/LightChamberJson.json");
     }
 
     public override void _Process(double delta)
@@ -180,6 +187,7 @@ public partial class PlayerBean : CharacterBody3D
             PWeapon.builderroot.GetNode<Camera3D>("BuilderCam").MakeCurrent();
             IsBuilderOpen = true;
             PWeapon.AllowFiring(false);
+            SetInventoryToggle(true);
         }
         else {
             Input.MouseMode = Input.MouseModeEnum.Captured;//release mouse
@@ -187,6 +195,18 @@ public partial class PlayerBean : CharacterBody3D
             PWeapon.UnLoadBuilder();
             IsBuilderOpen = false;
             PWeapon.AllowFiring(true);
+            SetInventoryToggle(false);
+        }
+    }
+
+    public void SetInventoryToggle(bool Active) {
+        inventory.Visible = Active;
+        if (Active)
+        {
+            inventory.ProcessMode = ProcessModeEnum.Inherit;
+        }
+        else {
+            inventory.ProcessMode = ProcessModeEnum.Disabled;
         }
     }
 }
